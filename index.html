@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>音乐播放器插件</title>
+  <style type="text/css">
+    .musicPlugin {
+      position: fixed;
+      right: 10px;
+      bottom: 10px;
+      display: flex;
+      max-width: 80vw;
+      width: 40vw;
+      height: 50px;
+      transition: all .4s;
+      overflow: hidden;
+    }
+    .musicPlugin * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      user-select: none;
+      font-size: 13px;
+      color: white;
+    }
+    button {
+      border: none;
+      outline: none;
+      cursor: pointer;
+    }
+    button.musicSwitcher {
+      order: 1;
+      z-index: 11;
+      width: 30px;
+      padding: 0 8px;
+      line-height: 1.2;
+      background-color: #3c4049;
+      align-items: stretch;
+    }
+    button.musicSwitcher.on {
+      background-color: #080a0e;
+    }
+    .musicBody {
+      order: 0;
+      display: flex;
+      height: 50px;
+      flex-grow: 1;
+      transition: all .4s;
+      background-color: #10141d;
+    }
+    .img-wrapper {
+      order: 1;
+      width: 50px;
+    }
+    .img-wrapper >img {
+      width: 100%;
+      transition: all .4s;
+    }
+    .musicUploader-wrapper {
+      order: 2;
+      width: 130px;
+      padding: 6px 10px;
+    }
+    .musicUploader {
+      border: 1px solid #6f7276;
+      margin: 0;
+      display: inline-block;
+      overflow: hidden;
+      width: 75%;
+      height: 52%;
+      border-radius: 9999px;
+      padding: 0 7px;
+      background: #4c4f55;
+      background-image: url('https://ss0.bdstatic.com/5aV1bjqh_Q23odCf/static/newmusic/img/music_248dcae7.png');
+      background-position: -2px -1px;
+      opacity: .75;
+      transform: translate(12px, 9px);
+    }
+    .musicUploader:hover {
+      opacity: 1;
+    }
+    .musicUploaderShadow {
+      opacity: 0;
+    }
+    .musicController-wrapper {
+      order: 3;
+      flex-grow: 1;
+    }
+    .musicController {
+      display: flex;
+      height: 50px;
+      align-items: stretch;
+    }
+    .musicController >button {
+      position: relative;
+      background-color: transparent;
+      width: 39px;
+    }
+    button.back::before {
+      content: '';
+      position: absolute;
+      width: 4%;
+      height: 30%;
+      left: 29%;
+      top: 35%;
+      background-color: #cfd0d1;
+    }
+    button.back::after {
+      content: '';
+      position: absolute;
+      border: 10px solid transparent;
+      border-right-color: #cfd0d1;
+      bottom: 29%;
+      right: 35%;
+    }
+    button.play::before {
+      content: '';
+      position: absolute;
+      border: 11px solid transparent;
+      border-left-color: #cfd0d1;
+      top: 30%;
+      left: 40%;
+    }
+    button.pause::before {
+      content: '';
+      position: absolute;
+      width: 8%;
+      height: 35%;
+      top: 35%;
+      left: 35%;
+      background-color: #cfd0d1;
+    }
+    button.pause::after {
+      content: '';
+      position: absolute;
+      width: 8%;
+      height: 35%;
+      top: 35%;
+      right: 35%;
+      background-color: #cfd0d1;
+    }
+    button.forward::before {
+      content: '';
+      position: absolute;
+      width: 4%;
+      height: 30%;
+      right: 29%;
+      top: 35%;
+      background-color: #cfd0d1;
+    }
+    button.forward::after {
+      content: '';
+      position: absolute;
+      border: 10px solid transparent;
+      border-left-color: #cfd0d1;
+      bottom: 29%;
+      left: 35%;
+    }
+    button.circle::before {
+      content: '';
+      position: absolute;
+      width: 50%;
+      height: 20%;
+      top: 35%;
+      left: 15%;
+      border: 3px solid #cfd0d1;
+      border-radius: 20px;
+    }
+    button.circle::after {
+      content: '';
+      position: absolute;
+      border: 5px solid #10141d;
+      border-left-color: #cfd0d1;
+      top: 28%;
+      left: 36%;
+    }
+    button.sequence::before {
+      content: '';
+      position: absolute;
+      width: 50%;
+      height: 4%;
+      top: 42%;
+      left: 20%;
+      background-color: #cfd0d1;
+    }
+    button.sequence::after {
+      content: '';
+      position: absolute;
+      width: 50%;
+      height: 4%;
+      bottom: 41%;
+      left: 20%;
+      background-color: #cfd0d1;
+    }
+    .progresser-wrapper {
+      order: 4;
+      flex-grow: 1;
+      padding: 22px 2%;
+    }
+    .progresser {
+      position: relative;
+      width: 96%;
+      height: 2px;
+      box-sizing: content-box;
+      border: 2px solid #10141d;
+      background-color: #a6a7a8;
+      cursor: pointer;
+    }
+    .progressLine {
+      position: absolute;
+      width: 0%;
+      height: 100%;
+      border: 1px solid white;
+      left: 0;
+      background-color: #fff;
+    }
+    .progressBall {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      top: -4px;
+      left: 0%;
+      transform: translateX(-5px);
+      border-radius: 50%;
+      background-color: #fff;
+      pointer-events: none;
+    }
+    button.musicHide {
+      order: 0;
+      position: relative;
+      background-color: #3c4049;
+      width: 30px;
+    }
+    button.musicHide::before {
+      position: absolute;
+      content: '';
+      width: 30%;
+      height: 2px;
+      right: 40%;
+      background-color: #fff;
+      transform: rotate(45deg) translateY(-4px);
+    }
+    button.musicHide::after {
+      position: absolute;
+      content: '';
+      width: 30%;
+      height: 2px;
+      right: 40%;
+      background-color: #fff;
+      transform: rotate(-45deg) translateY(4px);
+    }
+    .img-wrapper {
+      background-color: #a5a5a5;
+      overflow: hidden;
+    }
+    .spin {
+      animation: spin 4s linear infinite;
+      transition: all .4s;
+    }
+    @keyframes spin {
+      from {
+        transform: rotate(0);
+      }
+      to {
+        transform: rotate(360deg);
+      }
+    }
+    .musicBody.hide {
+      transform: translateX(100%);
+    }
+    .musicBody.hide .musicHide {
+      transform: rotate(180deg);
+    }
+    @media screen and (max-width: 600px) {
+      .pluginMusic {
+        max-width: 70vw;
+      }
+      .progresser-wrapper {
+        display: none;
+      }
+    }
+
+  </style>
+</head>
+<body>
+  <div class="musicPlugin">
+    <button id=switcher class="musicSwitcher on">
+      音乐
+    </button>
+    <div id=musicBody class="musicBody hide">
+      <div class="img-wrapper">
+        <img id=cd src="https://ss0.bdstatic.com/5aV1bjqh_Q23odCf/static/newmusic/img/default_8a5b42b2.png" alt="1">
+      </div>
+      <div class="musicUploader-wrapper">
+        <div class="musicUploader">
+          <input type="file" id="musicUploader" class="musicUploaderShadow" multiple accept="audio/*">
+        </div>
+      </div>
+      <div class="musicController-wrapper">
+        <div class="musicController">
+          <button id=back class="back"></button>
+          <button id=play class="play"></button>
+          <button id=forward class="forward"></button>
+          <button id=circle class="circle"></button>
+          <div class="progresser-wrapper">
+            <div id=progresser class="progresser">
+              <div id=progressLine class="progressLine"></div>
+              <div id=progressBall class="progressBall"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <button id=hider class="musicHide"></button>
+    </div>
+    <audio src="" id="audio" class="audio"></audio>
+  </div>
+  <script type="text/javascript">
+   /*mp3 文件的上传播放*/
+   let fileIdx = 0
+   let musicList = []
+
+   /*本地歌曲上传*/
+   musicUploader.addEventListener('change', e => {
+    let files = [...e.target.files]
+    addMusic(files)
+    playMusic(0)
+  })
+
+   function addMusic(files) {
+    musicList = []
+    files.filter(file => /^audio/i.test(file.type)).forEach(file => {
+      file.src = window.URL && window.URL.createObjectURL(file)
+      musicList.push(file)
+    })
+  }
+
+  function playMusic(idx) {
+    if (!musicList.length) return
+      audio.pause()
+    audio.src = musicList[idx].src
+    audio.play()
+    play.setAttribute('class', 'pause')
+    cd.classList.add('spin')
+  }
+
+  /*处理进度条样式、事件*/
+  let dragEnabled = false
+
+  progresser.addEventListener('mousedown', e => {
+    e.preventDefault()
+    updateAudioTime(e.layerX, progresser.clientWidth)
+  }, false)
+
+  progresser.addEventListener('mousedown', e => dragEnabled = true)
+
+  progresser.addEventListener('mousemove', e => {
+    e.preventDefault()
+    if (dragEnabled) {
+      updateAudioTime(e.layerX, progresser.clientWidth)
+    }
+  })
+
+  progresser.addEventListener('mouseup', e => dragEnabled = false)
+
+  progresser.addEventListener('mouseleave', e => dragEnabled = false)
+
+  audio.addEventListener('timeupdate', updateProgress)
+
+  function updateProgress() {
+    let percent = 100 * audio.currentTime / audio.duration || 0
+    progressLine.style.width = progressBall.style.left = `${percent}%`
+  }
+
+  function updateAudioTime(cur, tot) {
+    let radio = cur / tot || 0
+    if (audio.duration && radio >= 0 && radio <= 1) {
+      audio.currentTime = radio * audio.duration
+    }
+  }
+
+  /*处理控制按钮事件*/
+  play.addEventListener('click', e => {
+    if (!musicList.length) return
+      if (audio.paused) {
+        audio.play()
+        play.setAttribute('class', 'pause')
+        cd.classList.add('spin')
+      } else {
+        audio.pause()
+        play.setAttribute('class', 'play')
+        cd.classList.remove('spin')
+      }
+    })
+
+  back.addEventListener('click', e => {
+    fileIdx = fileIdx - 1 < 0 ? fileIdx : fileIdx - 1
+    playMusic(fileIdx)
+  })
+
+  forward.addEventListener('click', e => {
+    fileIdx = fileIdx + 1 === musicList.length ? fileIdx : fileIdx + 1
+    playMusic(fileIdx)
+  })
+
+  circle.addEventListener('click', e => {
+    audio.loop = !audio.loop
+  })
+
+  cd.addEventListener('click', e => play.click())
+
+  circle.addEventListener('click', e => {
+    let playMode = circle.classList.contains('circle') ? 'sequence' : 'circle'
+    circle.setAttribute('class', playMode)
+  })
+
+  /*播放器展开折叠*/
+  switcher.addEventListener('click', switchBody)
+  hider.addEventListener('click', switchBody)
+
+  function switchBody() {
+    if (musicBody.classList.contains('hide')) {
+      musicBody.classList.remove('hide')
+    } else {
+      musicBody.classList.add('hide')
+    }
+  }
+
+  /*处理自动播放逻辑*/
+  audio.addEventListener('ended', e => {
+    if (!audio.loop) {
+      forward.click()
+    }
+  })
+</script>
+</body>
+</html>
